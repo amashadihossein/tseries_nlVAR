@@ -4,6 +4,6 @@
 .Ruserdata
 .DS_Store
 wip.R
-*.html
+#*.html
 images/
 tseries_nlVAR_files/
