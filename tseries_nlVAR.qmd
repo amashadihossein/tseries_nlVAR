@@ -1,0 +1,238 @@
+---
+title: "Time-series Inference Using a Non-linear Vector Autoregressive Model"
+author: "Afshin Mashadi-Hossein"
+date: "`r Sys.Date()`"
+format:
+  revealjs:
+    theme: [custom.scss]
+editor: visual
+title-slide-attributes: 
+  data-background-color: "#212121"
+---
+
+## Overview
+
+::: columns
+::: {.column width="50%"}
+### 1- Motivation
+|       [Typical problem](#2)
+|       [Data generation as DAG](#3)
+
+### 2- Background and Notation
+|       [DAGs and matrix representation](#5)
+|       [Representing data](#6)
+
+### 3- Vector Autoregressive (VAR) Models
+|       [A Toy example](#7)
+|       [Est VAR in high dimensional setting](#8)
+
+:::
+
+:::
+
+## Motivation
+
+![Data Generation Mechanism](images/data_motivation.png)
+
+## Motivation
+
+![Data Generation Mechanism as DAG](images/dag_motivation.png)
+
+## Motivation
+
+![Data Generation Mechanism as DAG](images/dag_motivation_highlighted.png)
+
+
+## Background and Notation
+
+::: columns
+::: {.column width="50%"}
+Graph: Nodes + Edges
+
+![Example](images/net_bg_notation.png)
+:::
+
+::: {.column width="50%"}
+Adjacency matrix: not-directed
+
+$$A_{0/1} = \begin{bmatrix}
+0 & 1 & 1 & 0  \\
+1 & 0 & 1 & 0  \\
+1 & 1 & 0 & 1  \\
+0 & 0 & 1 & 0  \\
+\end{bmatrix}$$
+
+Adjacency matrix: directed
+$$A = \begin{bmatrix}
+0.0 & 0.5 & 2.0 & 0.0  \\
+0.0 & 0.0 & 1.0 & 0.0  \\
+0.0 & 0.0 & 0.0 & 0.0  \\
+0.0 & 0.0 & -1.0 & 0.0  \\
+\end{bmatrix}$$
+
+:::
+:::
+
+## Background and Notation
+
+**Data representation:**
+
+-   $X^t$: Observations (data) at time $t$
+-   $X^t \in R^{nxp}$: $X$ contains $n$ observations on $p$ nodes at time $t$
+
+## Vector Autoregressive (VAR) Models
+
+::: callout-tip
+## Network VAR Model: General Idea
+
+States observed over the past $d$ time points are predictive of the current observed state, $X^T$
+:::
+
+-   Example: a network with $p=5$ and $d = 2$ ![VAR Example](images/var_toy.png)
+
+-   Task: estimate $d$ and $A^t$ given $X^t$, $t \in \{1, ..., T\}$
+
+$$X^T = X^{T-1}A^1 + ... + X^{T-d}A^d + \epsilon^T, ~ \epsilon^T \sim 
+\mathcal{MN}(0_{nxp},\sigma^2 I_n, \sigma^2 I_p) ~~ (1)$$
+
+## Estimating $A^t$s and $d$
+
+-   Combining $X^T \rightarrow \mathcal{X}$ and stacking $A^t \rightarrow \mathcal{A}$:
+
+$$X^T = \mathcal{X} \mathcal{A} + \epsilon^T, ~\epsilon^T \sim 
+\mathcal{MN}(0_{nxp},\sigma^2 I_n, \sigma^2 I_p) ~~ (2)$$
+
+-   Estimating $A^t$s amounts to regressing columns of $X^T$ on \mathcal{X} one at a time
+
+-   Observing that
+
+&nbsp; 1.  $\mathcal{X}$ is high dimensional ($n \ll p$) and that
+
+&nbsp; 2.  $A^t$ are expected to be sparse
+
+&nbsp; regression involves both variable **selection** (which nodes are connected) and **estimation** (quantification of connection strength). To this end, we can impose a $\ell_1$ type penalty to the regression. To estimate $d$ we could then use thresholded LASSO (Shojaie *et al*).
+
+## Estimating $A^t$s and $d$ Using Thresholded LASSO
+::: {style="font-size:24px"}
+A 3-Step process for estimating $A^t$s and d by
+
+1.   Estimate $\bar{A^t}$ by fit eq. 2 for each column $j$ of $X^T$
+
+$$\underset{{\alpha_0 \in \mathbb{R}^{1},\mathcal{A}_{.j} \in \mathbb{R}^{q} }}{\arg\min} n^{-1}
+\| X_{.j}^T  - \alpha_0 - \mathcal{X}\mathcal{A}_{.j}  \|_2^2
++ \lambda \|\mathcal{A}_{.j}\|_1~~(3)$$ 
+
+2. Threshold $\bar{A^t}$ to get the thresholded est. adj matrix, $\hat{A^t}$
+
+$$\hat{A_{ij}^t} = \bar{A_{ij}^t} 1_{\{ \|\bar{A}^t\|_0 < \frac{p^2 \beta}{T-1} \text{ and }  |\bar{A_{ij}^t}| < \tau \}}~~(4)$$ 
+
+3. Estimate the order of teh VAR model, $\hat{d}$, as follows:
+
+$$\hat{d} = \max_{t} \{t: \|\hat{A}^t\|_0 < \frac{p^2 \beta}{T-1} \}~~(5)$$
+where $\beta$ is the desired rate of type II error for detecting an edge between 
+two nodes. $\lambda$ and $\tau$ are tuning parameters with default values 
+suggested by Shojaie et al.
+
+:::
+
+## Estimating $A^t$s and $d$: A Toy Example
+::: {style="font-size:24px"}
+
+The 3-steps procedure for a network of size 3 observed over 3 time-points.
+
+1. Get the adj. mat. estimates $[\bar{A^1}~ \bar{A^2}~\bar{A^3}]$ via LASSO regression:
+
+$$\begin{bmatrix}
+0.00 & 0.00 & 1.00 ~~&~~ 1.00 & 0.00 & 1.00 ~~&~~ 0.10 & 2.00 & 0.90\\
+0.00 & 0.00 & 0.00 ~~&~~ 0.00 & 5.00 & 0.00 ~~&~~ 0.00 & 0.00 & 0.00\\
+0.00 & 0.00 & 0.00 ~~&~~ 0.35 & 0.32 & 0.09 ~~&~~ 5.00 & 0.20 & 0.15\\
+\end{bmatrix}$$
+
+2. Threshold using eq. 4 with $\frac{p^2 \beta}{T-1} = 2$ and $\tau = 1$
+
+$$\begin{bmatrix}
+0 & 0 & 0 ~~&~~ 1 & 0 & 1 ~~&~~ 0 & 2 & 0\\
+0 & 0 & 0 ~~&~~ 0 & 5 & 0 ~~&~~ 0 & 0 & 0\\
+0 & 0 & 0 ~~&~~ 0 & 0 & 0 ~~&~~ 5 & 0 & 0\\
+\end{bmatrix}$$
+
+3. Estimate the order: $\hat{d} = \max_{t} \{t: \|\hat{A}^t\|_0 < 2 \} = 2$
+
+:::
+
+## Generalizing the Model: Capturing Higher Order Relations
+
+- VAR model of eq. 1 estimates the linear trends in the inter-relations of nodes
+- To capture higher order relations, we transform observations using a smoother 
+(e.g. B-spline)
+- We penalize the coefficients by groups corresponding to expansion of a single
+variable using group LASSO
+- Thresholding is done analogous to the linear case but using $\ell^2$ norm of 
+est. coefficient groups.
+
+## Model Tuning: Regression Penalty Term $\lambda$
+
+::: {style="font-size:24px"}
+
+- Network inference: filter out spurious associations, keep true conditional 
+dependencies
+
+- the larger the penalty, $\lambda$, the more conservative the
+filter
+
+-   To pick the right level of filtering, there are multiple choices including 
+general cross validation as well as likelihood-based scores, such as Schwarz Bayesian 
+Information Criteria (SBIC) score.
+
+
+$$\textrm{SBIC} = \: \log \: L(x|\theta_{MLE}) - \frac{DOF_{MLE}}{2} \: \log \: n ~ (6)$$
+&nbsp; where DOF is the degrees of freedom of MLE model: $||\theta_{MLE}||_0$
+
+-   In the context of linear regression model, $lm$, and assumption of normality, BIC (which is
+often represented as SBIC scaled by -2) is simplified (up to a constant) as:
+
+$$\textrm{BIC} = \: n \: \log \: \frac{RSS}{n} + DOF_{lm} \: \log \: n ~ (7)$$
+:::
+
+## Model Tuning: BIC's flat Prior Assumption
+
+::: {style="font-size:24px"}
+
+*   In high-dimensional settings, BIC is too liberal in model selection
+*   Flat Prior Assumption of Schwarz's BIC: all possible models equally likely 
+given that we have no information on the network
+
+*   Consider the case where there are 1000 parameters (edges) that could be 
+included in the model (network).
+
+    +   1 param model choices: $\binom{1000}{1} = 1000$
+    +   2 param model choices: $\binom{1000}{2} = 1000 * 999/2$
+    +   $\rightarrow$ two parameter model are 999/2 more likely than single parameter
+  model
+* Extended BIC, proposed by Chen and Chen, sets the prior to be flat for model 
+groups of same number of parameters.
+
+:::
+
+## Model Tuning: Extended BIC with $\widehat{\textrm{DOF}}_{\textrm{grplasso}}$
+
+::: {style="font-size:24px"}
+
+*   Extended BIC (EBIC) is given by 
+
+$$\textrm{EBIC} = \textrm{BIC} + 2~\textrm{DOF}~\gamma~ log~p,~ \text{where}~  0\leq \gamma ~(8)$$ 
+
+|       DOF is the degrees of freedom and $\gamma$ is a tuning parameter that can be increased as p grows larger
+|       relative to n. At $\gamma = 0$, EBIC reduces to BIC
+
+* Note: DOF relates to the number of model parameter. However, the true number of 
+parameters (edges) to estimated itself is unknown $\rightarrow$ We need an 
+estimator for DOF.
+
+* For group LASSO, we can use Vaiter et al. est. DOF
+
+$$\widehat{\textrm{DOF}}_{\textrm{grplasso}} =  \textrm{Trace}[X_a(X_a'X_a +
+\lambda \mathscr{N}(\hat{\beta_a})\odot
+(I - P_{\hat{\beta_a}}))^{-1}X_a'],~ \text{wehre}~  0\leq \gamma ~(9)$$
+
+:::
