@@ -27,7 +27,22 @@ date: "`r Sys.Date()`"
 
 ## Motivation
 
+::: columns
+::: {.column width="30%"}
+
+```{mermaid}
+flowchart TD
+  A((exposure)) --> B((biomarker))
+  C((treatment)) --> B
+  B --> D((reaction))
+```
+
+:::
+::: {.column width="70%"}
 ![Data Generation Mechanism](images/data_motivation.png)
+
+:::
+:::
 
 ## Motivation
 
@@ -121,7 +136,7 @@ $$\underset{{\alpha_0 \in \mathbb{R}^{1},\mathcal{A}_{.j} \in \mathbb{R}^{q} }}{
 
 $$\hat{A_{ij}^t} = \bar{A_{ij}^t} 1_{\{ \|\bar{A}^t\|_0 < \frac{p^2 \beta}{T-1} \text{ and }  |\bar{A_{ij}^t}| < \tau \}}~~(4)$$
 
-3.  Estimate the order of teh VAR model, $\hat{d}$, as follows:
+3.  Estimate the order of the VAR model, $\hat{d}$, as follows:
 
 $$\hat{d} = \max_{t} \{t: \|\hat{A}^t\|_0 < \frac{p^2 \beta}{T-1} \}~~(5)$$ where $\beta$ is the desired rate of type II error for detecting an edge between two nodes. $\lambda$ and $\tau$ are tuning parameters with default values suggested by Shojaie et al.
 :::
@@ -176,11 +191,11 @@ $$\underset{\beta_0 \in \mathbb{R},\mathcal{B}_{.j} \in \mathbb{R}^{s} } {\arg\m
 
 -   To pick the right level of filtering, there are multiple choices including general cross validation as well as likelihood-based scores, such as Schwarz Bayesian Information Criteria (SBIC) score.
 
-$$\textrm{SBIC} = \: \log \: \mathcal{L}(\theta_{MLE}|x) - \frac{DOF_{MLE}}{2} \: \log \: n ~~ (7)$$   where DOF is the degrees of freedom of MLE model: $\lVert\theta_{MLE}\rVert_0$
+$$\textrm{SBIC} = \: \log \: \mathcal{L}(\theta_{MLE}|x) - \frac{DOF_{MLE}}{2} \: \log \: n ~~ (8)$$   where DOF is the degrees of freedom of MLE model: $\lVert\theta_{MLE}\rVert_0$
 
 -   In the context of linear regression model, $lm$, and assumption of normality, BIC (which is often represented as SBIC scaled by -2) is simplified (up to a constant) as:
 
-$$\textrm{BIC} = \: n \: \log \: \frac{RSS}{n} + DOF_{lm} \: \log \: n ~~ (8)$$
+$$\textrm{BIC} = \: n \: \log \: \frac{RSS}{n} + DOF_{lm} \: \log \: n ~~ (9)$$
 :::
 
 ## Model Tuning: BIC's flat Prior Assumption
@@ -204,7 +219,7 @@ $$\textrm{BIC} = \: n \: \log \: \frac{RSS}{n} + DOF_{lm} \: \log \: n ~~ (8)$$
 ::: {style="font-size:24px"}
 -   Extended BIC (EBIC) is given by
 
-$$\textrm{EBIC} = \textrm{BIC} + 2~\textrm{DOF}~\gamma~ log~p,~ \text{where}~  0\leq \gamma ~~(9)$$
+$$\textrm{EBIC} = \textrm{BIC} + 2~\textrm{DOF}~\gamma~ log~p,~ \text{where}~  0\leq \gamma ~~(10)$$
 
 |       DOF is the degrees of freedom and $\gamma$ is a tuning parameter that can be increased as p grows larger
 |       relative to n. At $\gamma = 0$, EBIC reduces to BIC
@@ -215,7 +230,47 @@ $$\textrm{EBIC} = \textrm{BIC} + 2~\textrm{DOF}~\gamma~ log~p,~ \text{where}~  0
 
 $$\widehat{\textrm{DOF}}_{\textrm{grplasso}} =  \textrm{Trace}[X_a(X_a'X_a +
 \lambda \mathscr{N}(\hat{\beta_a})\odot
-(I - P_{\hat{\beta_a}}))^{-1}X_a'] ~~(10)$$
+(I - P_{\hat{\beta_a}}))^{-1}X_a'] ~~(11)$$
 
 -   where $\lambda$ is the group LASSO penalty, $X_a$ and $\hat{\beta_a}$ correspond to 'selected\` groups of variables. $P_{\hat{\beta_a}}$ is a block diagonal matrix, each block the projection matrix of one of the 'selected' variables. $\mathscr{N}(\hat{\beta_a})$ normalizes each block by its $\ell^2$ norm of $\hat{\beta}_{\textrm{group}}$.
 :::
+
+## Catching the 'Signal' in the Time Course
+
+-   Conditional dependencies (edges) between nodes are learned from observing nonde-node co-variations
+
+-   As a signal propagates through network, different sets of nodes exhibit their co-variations maximally at different time windows
+
+-   During which time window should these co-variations be estimated?
+
+![](images/catching_the_signal.png){fig-align="center"}
+
+## Bayesian Model Averaging (BMA)
+
+::: {style="font-size:24px"}
+
+*   For $\forall~\mathcal{X}_t = [X^{1}, ..., X^{t}]$, where $t \in \{2,~...,~ T\}$ infer network: $M_t$
+and the corresponding graph $G_t$
+
+*   Score each inferred network, $M_t$, using BIC ^[BIC is used generically to refer to EBIC or BIC],
+
+$$w_i = \frac{\exp(-\frac{1}{2} \textrm{BIC}_{i})}{\sum\limits_{j=1}^{T-1}  
+\exp(-\frac{1}{2} \textrm{BIC}_j) } ~~(12)$$
+
+* Perform a weighted average of the est. graph
+
+$$\hat{\mathcal{G}} = \sum\limits_{t=1}^{T-1}w_t{\hat{G}_t} ~~(13)$$
+
+* Select a thresholding $\mathcal{p} \in [0~1]$ and define thresholded BMA graph
+, $\breve{\mathcal{G}}$ such that: $\breve{\mathcal{G}}_{ij} = \hat{\mathcal{G}_{ij}} 1_{[\hat{\mathcal{G}_{ij}} > \mathcal{p}]}$
+
+
+:::
+
+
+## Ideas For Extensions
+
+-   Dealing with perturbation of nodes: if node_i is set, its' value should not be regressed on previous
+-   Dealing with censoring
+-   Computational parallelization
+-   Total regression
