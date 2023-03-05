@@ -2,14 +2,7 @@
 title: "Time-series Inference Using a Non-linear Vector Autoregressive Model"
 author: "Afshin Mashadi-Hossein"
 date: "`r Sys.Date()`"
-format:
-  revealjs:
-    theme: [custom.scss]
-editor: visual
-title-slide-attributes: 
-  data-background-color: "#212121"
 ---
-
 ## Overview
 
 ::: columns

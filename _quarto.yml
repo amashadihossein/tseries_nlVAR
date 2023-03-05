@@ -1,0 +1,9 @@
+format:
+  revealjs:
+    theme: [custom.scss]
+editor: visual
+title-slide-attributes: 
+  data-background-color: "#212121"
+project:
+  type: website
+  output-dir: docs
