@@ -7,3 +7,4 @@ title-slide-attributes:
 project:
   type: website
   output-dir: docs
+macros: _macros.tex # import a list of TeX/LaTeX definitions

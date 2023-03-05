@@ -415,12 +415,14 @@ Afshin Mashadi-Hossein
 </div>
 </div>
 </div>
+<div style="font-size:24px">
 <ul>
 <li><p>Example: a network with <span class="math inline">\(p=5\)</span> and <span class="math inline">\(d = 2\)</span> <img data-src="images/var_toy.png" alt="VAR Example"></p></li>
 <li><p>Task: estimate <span class="math inline">\(d\)</span> and <span class="math inline">\(A^t\)</span> given <span class="math inline">\(X^t\)</span>, <span class="math inline">\(t \in \{1, ..., T\}\)</span></p></li>
 </ul>
 <p><span class="math display">\[X^T = X^{T-1}A^1 + ... + X^{T-d}A^d + \epsilon^T, ~ \epsilon^T \sim
 \mathcal{MN}(0_{nxp},\sigma^2 I_n, \sigma^2 I_p) ~~ (1)\]</span></p>
+</div>
 </section>
 <section id="estimating-ats-and-d" class="slide level2">
 <h2>Estimating <span class="math inline">\(A^t\)</span>s and <span class="math inline">\(d\)</span></h2>
@@ -484,12 +486,22 @@ Afshin Mashadi-Hossein
 </section>
 <section id="generalizing-the-model-capturing-higher-order-relations" class="slide level2">
 <h2>Generalizing the Model: Capturing Higher Order Relations</h2>
+<div style="font-size:24px">
 <ul>
 <li>VAR model of eq. 1 estimates the linear trends in the inter-relations of nodes</li>
 <li>To capture higher order relations, we transform observations using a smoother (e.g.&nbsp;B-spline)</li>
+</ul>
+<p><span class="math display">\[X^T = Y^{T-1}B^1 + \cdots + Y^{T-d}B^d +\epsilon^T, \epsilon^T \sim \mathcal{MN}(\bf{0}_{\textrm{n} \times \textrm{p}},~\sigma^2I_n ,\sigma^2I_p)~~(6) \]</span> Here, <span class="math inline">\(Y^t = [f(X_{.1}^t), \cdots, f(X_{.p}^t)]\in \mathbb{R}^{\textrm{n}\times \textrm{u}}\)</span></p>
+<ul>
 <li>We penalize the coefficients by groups corresponding to expansion of a single variable using group LASSO</li>
+</ul>
+<p><span class="math display">\[\underset{\beta_0 \in \mathbb{R},\mathcal{B}_{.j} \in \mathbb{R}^{s} } {\arg\min}  \frac{1}{2n}
+\| X_{.j}^T  - \beta_0 - \mathcal{Y} \mathcal{B}_{.j}  \|_2^2
++ \lambda \sum\limits_{i=1}^p \sqrt{k} \|\mathcal{B}_{g_ij}\|_1, ~~ (7)\]</span></p>
+<ul>
 <li>Thresholding is done analogous to the linear case but using <span class="math inline">\(\ell^2\)</span> norm of est. coefficient groups.</li>
 </ul>
+</div>
 </section>
 <section id="model-tuning-regression-penalty-term-lambda" class="slide level2">
 <h2>Model Tuning: Regression Penalty Term <span class="math inline">\(\lambda\)</span></h2>
@@ -499,11 +511,11 @@ Afshin Mashadi-Hossein
 <li><p>the larger the penalty, <span class="math inline">\(\lambda\)</span>, the more conservative the filter</p></li>
 <li><p>To pick the right level of filtering, there are multiple choices including general cross validation as well as likelihood-based scores, such as Schwarz Bayesian Information Criteria (SBIC) score.</p></li>
 </ul>
-<p><span class="math display">\[\textrm{SBIC} = \: \log \: L(x|\theta_{MLE}) - \frac{DOF_{MLE}}{2} \: \log \: n ~ (6)\]</span> &nbsp; where DOF is the degrees of freedom of MLE model: <span class="math inline">\(||\theta_{MLE}||_0\)</span></p>
+<p><span class="math display">\[\textrm{SBIC} = \: \log \: \mathcal{L}(\theta_{MLE}|x) - \frac{DOF_{MLE}}{2} \: \log \: n ~~ (7)\]</span> &nbsp; where DOF is the degrees of freedom of MLE model: <span class="math inline">\(\lVert\theta_{MLE}\rVert_0\)</span></p>
 <ul>
 <li>In the context of linear regression model, <span class="math inline">\(lm\)</span>, and assumption of normality, BIC (which is often represented as SBIC scaled by -2) is simplified (up to a constant) as:</li>
 </ul>
-<p><span class="math display">\[\textrm{BIC} = \: n \: \log \: \frac{RSS}{n} + DOF_{lm} \: \log \: n ~ (7)\]</span></p>
+<p><span class="math display">\[\textrm{BIC} = \: n \: \log \: \frac{RSS}{n} + DOF_{lm} \: \log \: n ~~ (8)\]</span></p>
 </div>
 </section>
 <section id="model-tuning-bics-flat-prior-assumption" class="slide level2">
@@ -528,7 +540,7 @@ Afshin Mashadi-Hossein
 <ul>
 <li>Extended BIC (EBIC) is given by</li>
 </ul>
-<p><span class="math display">\[\textrm{EBIC} = \textrm{BIC} + 2~\textrm{DOF}~\gamma~ log~p,~ \text{where}~  0\leq \gamma ~(8)\]</span></p>
+<p><span class="math display">\[\textrm{EBIC} = \textrm{BIC} + 2~\textrm{DOF}~\gamma~ log~p,~ \text{where}~  0\leq \gamma ~~(9)\]</span></p>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DOF is the degrees of freedom and <span class="math inline">\(\gamma\)</span> is a tuning parameter that can be increased as p grows larger<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;relative to n.&nbsp;At <span class="math inline">\(\gamma = 0\)</span>, EBIC reduces to BIC</p>
 <ul>
@@ -537,7 +549,7 @@ Afshin Mashadi-Hossein
 </ul>
 <p><span class="math display">\[\widehat{\textrm{DOF}}_{\textrm{grplasso}} =  \textrm{Trace}[X_a(X_a'X_a +
 \lambda \mathscr{N}(\hat{\beta_a})\odot
-(I - P_{\hat{\beta_a}}))^{-1}X_a'],~ \text{wehre}~  0\leq \gamma ~(9)\]</span></p>
+(I - P_{\hat{\beta_a}}))^{-1}X_a'],~ \text{wehre}~  0\leq \gamma ~~(10)\]</span></p>
 </div>
 
 <div class="footer footer-default">

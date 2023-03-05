@@ -75,11 +75,14 @@ $$A = \begin{bmatrix}
 
 ## Vector Autoregressive (VAR) Models
 
+
 ::: callout-tip
 ## Network VAR Model: General Idea
 
 States observed over the past $d$ time points are predictive of the current observed state, $X^T$
 :::
+
+::: {style="font-size:24px"}
 
 -   Example: a network with $p=5$ and $d = 2$ ![VAR Example](images/var_toy.png)
 
@@ -87,6 +90,8 @@ States observed over the past $d$ time points are predictive of the current obse
 
 $$X^T = X^{T-1}A^1 + ... + X^{T-d}A^d + \epsilon^T, ~ \epsilon^T \sim 
 \mathcal{MN}(0_{nxp},\sigma^2 I_n, \sigma^2 I_p) ~~ (1)$$
+
+:::
 
 ## Estimating $A^t$s and $d$
 
@@ -104,6 +109,7 @@ $$X^T = \mathcal{X} \mathcal{A} + \epsilon^T, ~\epsilon^T \sim
 &nbsp; 2.  $A^t$ are expected to be sparse
 
 &nbsp; regression involves both variable **selection** (which nodes are connected) and **estimation** (quantification of connection strength). To this end, we can impose a $\ell_1$ type penalty to the regression. To estimate $d$ we could then use thresholded LASSO (Shojaie *et al*).
+
 
 ## Estimating $A^t$s and $d$ Using Thresholded LASSO
 ::: {style="font-size:24px"}
@@ -154,14 +160,25 @@ $$\begin{bmatrix}
 :::
 
 ## Generalizing the Model: Capturing Higher Order Relations
-
+::: {style="font-size:24px"}
 - VAR model of eq. 1 estimates the linear trends in the inter-relations of nodes
 - To capture higher order relations, we transform observations using a smoother 
 (e.g. B-spline)
+
+$$X^T = Y^{T-1}B^1 + \cdots + Y^{T-d}B^d +\epsilon^T, \epsilon^T \sim \mathcal{MN}(\bf{0}_{\textrm{n} \times \textrm{p}},~\sigma^2I_n ,\sigma^2I_p)~~(6) $$
+Here, $Y^t = [f(X_{.1}^t), \cdots, f(X_{.p}^t)]\in \mathbb{R}^{\textrm{n}\times \textrm{u}}$
+
 - We penalize the coefficients by groups corresponding to expansion of a single
 variable using group LASSO
+
+$$\underset{\beta_0 \in \mathbb{R},\mathcal{B}_{.j} \in \mathbb{R}^{s} } {\arg\min}  \frac{1}{2n}
+\| X_{.j}^T  - \beta_0 - \mathcal{Y} \mathcal{B}_{.j}  \|_2^2
++ \lambda \sum\limits_{i=1}^p \sqrt{k} \|\mathcal{B}_{g_ij}\|_1, ~~ (7)$$
+
 - Thresholding is done analogous to the linear case but using $\ell^2$ norm of 
 est. coefficient groups.
+
+:::
 
 ## Model Tuning: Regression Penalty Term $\lambda$
 
@@ -178,13 +195,13 @@ general cross validation as well as likelihood-based scores, such as Schwarz Bay
 Information Criteria (SBIC) score.
 
 
-$$\textrm{SBIC} = \: \log \: L(x|\theta_{MLE}) - \frac{DOF_{MLE}}{2} \: \log \: n ~ (6)$$
-&nbsp; where DOF is the degrees of freedom of MLE model: $||\theta_{MLE}||_0$
+$$\textrm{SBIC} = \: \log \: \mathcal{L}(\theta_{MLE}|x) - \frac{DOF_{MLE}}{2} \: \log \: n ~~ (7)$$
+&nbsp; where DOF is the degrees of freedom of MLE model: $\lVert\theta_{MLE}\rVert_0$
 
 -   In the context of linear regression model, $lm$, and assumption of normality, BIC (which is
 often represented as SBIC scaled by -2) is simplified (up to a constant) as:
 
-$$\textrm{BIC} = \: n \: \log \: \frac{RSS}{n} + DOF_{lm} \: \log \: n ~ (7)$$
+$$\textrm{BIC} = \: n \: \log \: \frac{RSS}{n} + DOF_{lm} \: \log \: n ~~ (8)$$
 :::
 
 ## Model Tuning: BIC's flat Prior Assumption
@@ -213,7 +230,7 @@ groups of same number of parameters.
 
 *   Extended BIC (EBIC) is given by 
 
-$$\textrm{EBIC} = \textrm{BIC} + 2~\textrm{DOF}~\gamma~ log~p,~ \text{where}~  0\leq \gamma ~(8)$$ 
+$$\textrm{EBIC} = \textrm{BIC} + 2~\textrm{DOF}~\gamma~ log~p,~ \text{where}~  0\leq \gamma ~~(9)$$ 
 
 |       DOF is the degrees of freedom and $\gamma$ is a tuning parameter that can be increased as p grows larger
 |       relative to n. At $\gamma = 0$, EBIC reduces to BIC
@@ -226,6 +243,6 @@ estimator for DOF.
 
 $$\widehat{\textrm{DOF}}_{\textrm{grplasso}} =  \textrm{Trace}[X_a(X_a'X_a +
 \lambda \mathscr{N}(\hat{\beta_a})\odot
-(I - P_{\hat{\beta_a}}))^{-1}X_a'],~ \text{wehre}~  0\leq \gamma ~(9)$$
+(I - P_{\hat{\beta_a}}))^{-1}X_a'],~ \text{wehre}~  0\leq \gamma ~~(10)$$
 
 :::
