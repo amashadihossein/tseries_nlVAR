@@ -549,7 +549,10 @@ Afshin Mashadi-Hossein
 </ul>
 <p><span class="math display">\[\widehat{\textrm{DOF}}_{\textrm{grplasso}} =  \textrm{Trace}[X_a(X_a'X_a +
 \lambda \mathscr{N}(\hat{\beta_a})\odot
-(I - P_{\hat{\beta_a}}))^{-1}X_a'],~ \text{wehre}~  0\leq \gamma ~~(10)\]</span></p>
+(I - P_{\hat{\beta_a}}))^{-1}X_a'] ~~(10)\]</span></p>
+<ul>
+<li>where <span class="math inline">\(\lambda\)</span> is the group LASSO penalty, <span class="math inline">\(X_a\)</span> and <span class="math inline">\(\hat{\beta_a}\)</span> correspond to ‘selected` groups of variables. <span class="math inline">\(P_{\hat{\beta_a}}\)</span> is a block diagonal matrix, each block the projection matrix of one of the ’selected’ variables. <span class="math inline">\(\mathscr{N}(\hat{\beta_a})\)</span> normalizes each block by its <span class="math inline">\(\ell^2\)</span> norm of <span class="math inline">\(\hat{\beta}_{\textrm{group}}\)</span>.</li>
+</ul>
 </div>
 
 <div class="footer footer-default">
