@@ -28,6 +28,70 @@
       margin: 0 0.8em 0.2em -1.6em;
       vertical-align: middle;
     }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      { color: #003b4f; background-color: #f1f3f5; }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #003b4f; } /* Normal */
+    code span.al { color: #ad0000; } /* Alert */
+    code span.an { color: #5e5e5e; } /* Annotation */
+    code span.at { color: #657422; } /* Attribute */
+    code span.bn { color: #ad0000; } /* BaseN */
+    code span.bu { } /* BuiltIn */
+    code span.cf { color: #003b4f; } /* ControlFlow */
+    code span.ch { color: #20794d; } /* Char */
+    code span.cn { color: #8f5902; } /* Constant */
+    code span.co { color: #5e5e5e; } /* Comment */
+    code span.cv { color: #5e5e5e; font-style: italic; } /* CommentVar */
+    code span.do { color: #5e5e5e; font-style: italic; } /* Documentation */
+    code span.dt { color: #ad0000; } /* DataType */
+    code span.dv { color: #ad0000; } /* DecVal */
+    code span.er { color: #ad0000; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #ad0000; } /* Float */
+    code span.fu { color: #4758ab; } /* Function */
+    code span.im { color: #00769e; } /* Import */
+    code span.in { color: #5e5e5e; } /* Information */
+    code span.kw { color: #003b4f; } /* Keyword */
+    code span.op { color: #5e5e5e; } /* Operator */
+    code span.ot { color: #003b4f; } /* Other */
+    code span.pp { color: #ad0000; } /* Preprocessor */
+    code span.sc { color: #5e5e5e; } /* SpecialChar */
+    code span.ss { color: #20794d; } /* SpecialString */
+    code span.st { color: #20794d; } /* String */
+    code span.va { color: #111111; } /* Variable */
+    code span.vs { color: #20794d; } /* VerbatimString */
+    code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   </style>
   <link rel="stylesheet" href="site_libs/revealjs/dist/theme/quarto.css" id="theme">
   <link href="site_libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
@@ -337,26 +401,38 @@ Afshin Mashadi-Hossein
 </div>
 </div>
 
-  <p class="date">3/5/23</p>
+  <p class="date">3/7/23</p>
 </section>
 <section id="overview" class="slide level2">
 <h2>Overview</h2>
+<div style="font-size:24px">
 <div class="columns">
 <div class="column" style="width:50%;">
 <h3 id="motivation">1- Motivation</h3>
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/2">Typical problem</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/3">Data generation as DAG</a></p>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/3">Data generation as DAG</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/5">Simulating the DAG</a></p>
 <h3 id="background-and-notation">2- Background and Notation</h3>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/5">DAGs and matrix representation</a><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/6">Representing data</a></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/9">DAGs and matrix representation</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/10">Conditional Independence</a></p>
 <h3 id="vector-autoregressive-var-models">3- Vector Autoregressive (VAR) Models</h3>
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/7">A Toy example</a><br>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/11">A Toy example</a><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/8">Est VAR in high dimensional setting</a></p>
+</div><div class="column" style="width:50%;">
+<h3 id="network-inference">4- Network Inference</h3>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/13">Thresholded LASSO</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/15">Generalizing to higher order</a></p>
+<h3 id="solution-refinements">5- Solution refinements</h3>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/15">Model Tuning</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/16">Extended BIC</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#/17">Dealing with uncertainty in obs window</a></p>
+</div>
 </div>
 </div>
 </section>
 <section id="motivation-1" class="slide level2">
 <h2>Motivation</h2>
+<p>Given the case of an allergic reaction that is mediated through a measurable biomarker, consider the question re efficacy of treatment.</p>
 <div class="columns">
 <div class="column" style="width:30%;">
 <div class="cell" data-reveal="true">
@@ -376,34 +452,78 @@ Afshin Mashadi-Hossein
 </div>
 </div>
 </div><div class="column" style="width:70%;">
-<div class="quarto-figure quarto-figure-center">
-<figure>
 <p><img data-src="images/data_motivation.png"></p>
-<p></p><figcaption>Data Generation Mechanism</figcaption><p></p>
-</figure>
-</div>
 </div>
 </div>
 </section>
 <section id="motivation-2" class="slide level2">
 <h2>Motivation</h2>
+<p>A slightly more realistic view of the data generation mechanism accounts (at least) for the first order temporal <em>flow</em> of the signal</p>
 
-<img data-src="images/dag_motivation.png" class="r-stretch quarto-figure-center"><p class="caption">Data Generation Mechanism as DAG</p></section>
+<img data-src="images/dag_motivation.png" class="r-stretch quarto-figure-center"><p class="caption">Data Generation Viewed as DAG</p></section>
 <section id="motivation-3" class="slide level2">
 <h2>Motivation</h2>
+<p>In this context, of primary interests are the effect of treatment <span class="math inline">\(A_{trt}(t)\)</span> on the mediating biomarker <span class="math inline">\(X_1(t)\)</span> and more importantly, the effect of <span class="math inline">\(X_1(t)\)</span> on the outcome <span class="math inline">\(Y_1(t)\)</span> (e.g.&nbsp;allergic reaction). Addressing the questions, could be viewed as a <strong>Network Inference</strong> problem.</p>
 
-<img data-src="images/dag_motivation_highlighted.png" class="r-stretch quarto-figure-center"><p class="caption">Data Generation Mechanism as DAG</p></section>
+<img data-src="images/dag_motivation_highlighted.png" class="r-stretch quarto-figure-center"><p class="caption">Data Generation Viewed as DAG</p></section>
+<section id="simulation" class="slide level2">
+<h2>Simulation</h2>
+<div style="font-size:24px">
+<p>To make our mental model of the process even more explicitly defined, let’s consider the following DAG</p>
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="images/sim_dag.png"></p>
+<p></p><figcaption>Simulation Dag t: baseline through 3</figcaption><p></p>
+</figure>
+</div>
+</div>
+</section>
+<section id="simulation-1" class="slide level2">
+<h2>Simulation</h2>
+<p>The DAG can be implemented in <code>simcausal</code> as follows</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>t_obs <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">30</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a>t.end <span class="ot">&lt;-</span> <span class="fu">length</span>(t_obs)</span>
+<span id="cb1-3"><a href="#cb1-3"></a></span>
+<span id="cb1-4"><a href="#cb1-4"></a>D <span class="ot">&lt;-</span> <span class="fu">DAG.empty</span>() <span class="sc">+</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a>  <span class="fu">node</span>(<span class="at">name =</span> <span class="st">"allergic"</span>, <span class="at">distr =</span> <span class="st">"rbern"</span>, <span class="at">prob =</span> .<span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>  <span class="fu">node</span>(<span class="at">name =</span> <span class="st">"responder"</span>, <span class="at">distr =</span> <span class="st">"rbern"</span>, <span class="at">prob =</span> .<span class="dv">5</span>)<span class="sc">+</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a>  <span class="fu">node</span>(<span class="at">name =</span> <span class="st">"unitnoise"</span>, <span class="at">distr=</span><span class="st">"rnorm"</span>, <span class="at">mean=</span><span class="dv">0</span>, <span class="at">sd=</span>.<span class="dv">05</span>) <span class="sc">+</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>  <span class="fu">node</span>(<span class="at">name =</span> <span class="st">"trt"</span>, <span class="at">t =</span> <span class="fu">setdiff</span>(<span class="dv">1</span><span class="sc">:</span>t.end,<span class="fu">c</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>,<span class="dv">8</span><span class="sc">:</span><span class="dv">10</span>)), <span class="at">distr =</span> <span class="st">"rbern"</span>, <span class="at">prob =</span> <span class="dv">0</span>)<span class="sc">+</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a>  <span class="fu">node</span>(<span class="at">name =</span> <span class="st">"trt"</span>, <span class="at">t =</span> <span class="fu">c</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>,<span class="dv">8</span><span class="sc">:</span><span class="dv">10</span>), <span class="at">distr =</span> <span class="st">"rbern"</span>, </span>
+<span id="cb1-10"><a href="#cb1-10"></a>       <span class="at">prob =</span> <span class="fu">plogis</span>( (x1bar[t<span class="dv">-1</span>] <span class="sc">-</span> <span class="fl">0.5</span>) <span class="sc">*</span> <span class="dv">10</span>)) <span class="sc">+</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a>  <span class="fu">node</span>(<span class="at">name =</span> <span class="st">"pk"</span>, <span class="at">t =</span> <span class="dv">1</span>, <span class="at">distr =</span> <span class="st">"rbern"</span>, <span class="at">prob =</span> <span class="dv">0</span>)<span class="sc">+</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a>  <span class="fu">node</span>(<span class="at">name =</span> <span class="st">"pk"</span>, <span class="at">t =</span> <span class="dv">2</span><span class="sc">:</span>t.end, <span class="at">distr =</span> <span class="st">"getPk"</span>, <span class="at">pkm1 =</span> pk[t<span class="dv">-1</span>], <span class="at">rx =</span> trt[t])<span class="sc">+</span></span>
+<span id="cb1-13"><a href="#cb1-13"></a>  <span class="fu">node</span>(<span class="at">name =</span> <span class="st">"x1bar"</span>, <span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span>t.end, <span class="at">distr =</span> <span class="st">"aveProfile"</span>, <span class="at">time=</span>t, <span class="at">pk =</span> pk[t],</span>
+<span id="cb1-14"><a href="#cb1-14"></a>       <span class="at">allergic=</span>allergic, <span class="at">unitnoise =</span> unitnoise) <span class="sc">+</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a>  <span class="fu">node</span>(<span class="at">name =</span> <span class="st">"x2bar"</span>, <span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span>t.end, <span class="at">distr =</span> <span class="st">"aveProfile2"</span>, <span class="at">time=</span>t,</span>
+<span id="cb1-16"><a href="#cb1-16"></a>       <span class="at">allergic=</span>allergic, <span class="at">unitnoise =</span> unitnoise, <span class="at">x1bar =</span> x1bar[t], </span>
+<span id="cb1-17"><a href="#cb1-17"></a>       <span class="at">responder =</span> responder) <span class="sc">+</span></span>
+<span id="cb1-18"><a href="#cb1-18"></a>  </span>
+<span id="cb1-19"><a href="#cb1-19"></a>  <span class="fu">node</span>(<span class="at">name =</span> <span class="st">"rxn"</span>, <span class="at">t =</span> <span class="dv">1</span><span class="sc">:</span>t.end, <span class="at">distr =</span> <span class="st">"rbern"</span>,</span>
+<span id="cb1-20"><a href="#cb1-20"></a>       <span class="at">prob =</span> <span class="fu">plogis</span>( (x2bar[t] <span class="sc">-</span> <span class="fl">0.65</span>) <span class="sc">*</span> <span class="dv">30</span>))</span>
+<span id="cb1-21"><a href="#cb1-21"></a>  </span>
+<span id="cb1-22"><a href="#cb1-22"></a>  obj_D <span class="ot">&lt;-</span> <span class="fu">set.DAG</span>(D)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="motivation-simulation" class="slide level2">
+<h2>Motivation: Simulation</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>sim_xbar <span class="ot">&lt;-</span> simcausal<span class="sc">::</span><span class="fu">sim</span>(<span class="at">DAG =</span> obj_D,<span class="at">n =</span> <span class="dv">100</span>)</span>
+<span id="cb2-2"><a href="#cb2-2"></a>sim_xbar_long <span class="ot">&lt;-</span> <span class="fu">format_long</span>(sim_xbar)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+<img data-src="tseries_nlVAR_files/figure-revealjs/unnamed-chunk-6-1.png" width="960" class="r-stretch"></section>
+<section id="motivation-simulation-1" class="slide level2">
+<h2>Motivation: Simulation</h2>
+
+<img data-src="tseries_nlVAR_files/figure-revealjs/unnamed-chunk-8-1.png" width="960" class="r-stretch"></section>
 <section id="background-and-notation-1" class="slide level2">
 <h2>Background and Notation</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
-<p>Graph: Nodes + Edges</p>
-<div class="quarto-figure quarto-figure-center">
-<figure>
+<p>Network: Nodes + Edges</p>
 <p><img data-src="images/net_bg_notation.png"></p>
-<p></p><figcaption>Example</figcaption><p></p>
-</figure>
-</div>
 </div><div class="column" style="width:50%;">
 <p>Adjacency matrix: not-directed</p>
 <p><span class="math display">\[A_{0/1} = \begin{bmatrix}
@@ -423,11 +543,56 @@ Afshin Mashadi-Hossein
 </section>
 <section id="background-and-notation-2" class="slide level2">
 <h2>Background and Notation</h2>
+<div style="font-size:24px">
 <p><strong>Data representation:</strong></p>
 <ul>
 <li><span class="math inline">\(X^t\)</span>: Observations (data) at time <span class="math inline">\(t\)</span></li>
 <li><span class="math inline">\(X^t \in R^{nxp}\)</span>: <span class="math inline">\(X\)</span> contains <span class="math inline">\(n\)</span> observations on <span class="math inline">\(p\)</span> nodes at time <span class="math inline">\(t\)</span></li>
 </ul>
+<h3 id="note-on-conditional-independence">Note on conditional independence</h3>
+<p>Consider</p>
+<div class="cell" data-reveal="true">
+<div class="cell-output-display">
+<div>
+<p>
+</p><pre class="mermaid mermaid-js" data-tooltip-selector="#mermaid-tooltip-2">flowchart LR
+  x1((A)) --&gt; x2((B))
+  x2 --&gt; x3((C))
+</pre>
+<div id="mermaid-tooltip-2" class="mermaidTooltip">
+
+</div>
+<p></p>
+</div>
+</div>
+</div>
+<p>For this simple graph, conditional independence can be stated as</p>
+<p><span class="math display">\[C \not\!\perp\!\!\!\perp A | B\]</span> As the number of nodes, <span class="math inline">\(p\)</span>, grows, establishing conditional independence globally becomes challenging and many network inference algorithms rely on some variation of pairwise scoring between nodes, which is much more tractable. However, those algorithms are more prone to false edge discovery.</p>
+</div>
+</section>
+<section id="establishing-conditional-independence-through-regression" class="slide level2">
+<h2>Establishing Conditional Independence Through Regression</h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>xx <span class="ot">&lt;-</span> sim_xbar_long <span class="sc">%&gt;%</span> <span class="fu">select</span>(ID, t, x1) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-2"><a href="#cb3-2"></a>    tidyr<span class="sc">::</span><span class="fu">pivot_wider</span>(<span class="at">names_from =</span> t,<span class="at">values_from =</span> x1, <span class="at">names_prefix =</span> <span class="st">"t_"</span>) </span>
+<span id="cb3-3"><a href="#cb3-3"></a></span>
+<span id="cb3-4"><a href="#cb3-4"></a>xx <span class="sc">%&gt;%</span> <span class="fu">select</span>(t_1, t_2, t_3) <span class="sc">%&gt;%</span> plot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img data-src="tseries_nlVAR_files/figure-revealjs/unnamed-chunk-12-1.png" width="576"></p>
+</div>
+</div>
+</div><div class="column" style="width:50%;">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(t_3 <span class="sc">~</span> t_2, <span class="at">data =</span> xx)</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="fu">plot</span>(mod<span class="sc">$</span>residuals, xx<span class="sc">$</span>t_1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img data-src="tseries_nlVAR_files/figure-revealjs/unnamed-chunk-14-1.png" width="576"></p>
+</div>
+</div>
+</div>
+</div>
 </section>
 <section id="vector-autoregressive-var-models-1" class="slide level2">
 <h2>Vector Autoregressive (VAR) Models</h2>
@@ -485,7 +650,7 @@ Afshin Mashadi-Hossein
 <ol start="3" type="1">
 <li>Estimate the order of the VAR model, <span class="math inline">\(\hat{d}\)</span>, as follows:</li>
 </ol>
-<p><span class="math display">\[\hat{d} = \max_{t} \{t: \|\hat{A}^t\|_0 &lt; \frac{p^2 \beta}{T-1} \}~~(5)\]</span> where <span class="math inline">\(\beta\)</span> is the desired rate of type II error for detecting an edge between two nodes. <span class="math inline">\(\lambda\)</span> and <span class="math inline">\(\tau\)</span> are tuning parameters with default values suggested by Shojaie et al.</p>
+<p><span class="math display">\[\hat{d} = \max_{t} \{t: \|\hat{A}^{T-t}\|_0 &lt; \frac{p^2 \beta}{T-1} \}~~(5)\]</span> where <span class="math inline">\(\beta\)</span> is the desired rate of type II error for detecting an edge between two nodes. <span class="math inline">\(\lambda\)</span> and <span class="math inline">\(\tau\)</span> are tuning parameters with default values suggested by Shojaie et al.</p>
 </div>
 </section>
 <section id="estimating-ats-and-d-a-toy-example" class="slide level2">
@@ -611,14 +776,26 @@ Afshin Mashadi-Hossein
 </ul>
 </div>
 <aside><ol class="aside-footnotes"><li id="fn1"><p>BIC is used generically to refer to EBIC or BIC</p></li></ol></aside></section>
-<section id="ideas-for-extensions" class="slide level2">
-<h2>Ideas For Extensions</h2>
+<section id="summary-and-future-work" class="slide level2">
+<h2>Summary and Future Work</h2>
+<div style="font-size:24px">
+<p>The framework described has the following favorable properties</p>
 <ul>
-<li>Dealing with perturbation of nodes: if node_i is set, its’ value should not be regressed on previous</li>
-<li>Dealing with censoring</li>
-<li>Computational parallelization</li>
-<li>Total regression</li>
+<li><p>With some mild assumptions, it can infer network topology based on conditional independence</p></li>
+<li><p>It is well-suited high-dimensional data, assuming sparsity of network</p></li>
+<li><p>It can handle higher order trajectories</p></li>
+<li><p>It expand to simultaneously process evolution of multiple biomarkers</p></li>
+<li><p>It can handle experimental fixing of nodes</p></li>
+<li><p>It relies on well-established and computationally efficient regression machinery</p></li>
 </ul>
+<h3 id="feature-work">Feature work</h3>
+<ul>
+<li><p>Showing efficiency using simulated data</p></li>
+<li><p>Expansion to censored data</p></li>
+<li><p>Computational parallelization</p></li>
+<li><p>Total regression (as opposed to least squared)</p></li>
+</ul>
+</div>
 
 <div class="footer footer-default">
 

@@ -4,28 +4,52 @@ author: "Afshin Mashadi-Hossein"
 date: "`r Sys.Date()`"
 ---
 
-## Overview
+```{r setup, include=F}
+source("./R/global.R")
+```
 
+## Overview
+::: {style="font-size:24px"}
 ::: columns
 ::: {.column width="50%"}
 ### 1- Motivation
 
 |       [Typical problem](#2)
 |       [Data generation as DAG](#3)
+|       [Simulating the DAG](#5)
 
 ### 2- Background and Notation
 
-|       [DAGs and matrix representation](#5)
-|       [Representing data](#6)
+|       [DAGs and matrix representation](#9)
+|       [Conditional Independence](#10)
+
 
 ### 3- Vector Autoregressive (VAR) Models
 
-|       [A Toy example](#7)
+|       [A Toy example](#11)
 |       [Est VAR in high dimensional setting](#8)
+:::
+
+::: {.column width="50%"}
+### 4- Network Inference 
+|       [Thresholded LASSO](#13)
+|       [Generalizing to higher order](#15)
+
+### 5- Solution refinements
+
+|       [Model Tuning](#15)
+|       [Extended BIC](#16)
+|       [Dealing with uncertainty in obs window](#17)
+
+:::
 :::
 :::
 
+
 ## Motivation
+
+Given the case of an allergic reaction that is mediated through a measurable 
+biomarker, consider the question re efficacy of treatment.
 
 ::: columns
 ::: {.column width="30%"}
@@ -39,26 +63,107 @@ flowchart TD
 
 :::
 ::: {.column width="70%"}
-![Data Generation Mechanism](images/data_motivation.png)
+![](images/data_motivation.png)
 
 :::
 :::
 
 ## Motivation
 
-![Data Generation Mechanism as DAG](images/dag_motivation.png)
+A slightly more realistic view of the data generation mechanism accounts 
+(at least) for the first order temporal *flow* of the signal
+
+![Data Generation Viewed as DAG](images/dag_motivation.png)
 
 ## Motivation
 
-![Data Generation Mechanism as DAG](images/dag_motivation_highlighted.png)
+In this context, of primary interests are the effect of treatment $A_{trt}(t)$ 
+on the mediating biomarker $X_1(t)$ and more importantly, the effect of $X_1(t)$
+on the outcome $Y_1(t)$ (e.g. allergic reaction). Addressing the questions, 
+could be viewed as a **Network Inference** problem.
+
+![Data Generation Viewed as DAG](images/dag_motivation_highlighted.png)
+
+## Simulation
+
+::: {style="font-size:24px"}
+
+To make our mental model of the process even more explicitly defined, let's 
+consider the following DAG
+
+![Simulation Dag t: baseline through 3](images/sim_dag.png)
+
+:::
+
+## Simulation
+
+The DAG can be implemented in `simcausal` as follows
+
+```{r dag, message=FALSE, echo=TRUE}
+t_obs <- 1:30
+t.end <- length(t_obs)
+
+D <- DAG.empty() +
+  node(name = "allergic", distr = "rbern", prob = .5) +
+  node(name = "responder", distr = "rbern", prob = .5)+
+  node(name = "unitnoise", distr="rnorm", mean=0, sd=.05) +
+  node(name = "trt", t = setdiff(1:t.end,c(2:4,8:10)), distr = "rbern", prob = 0)+
+  node(name = "trt", t = c(2:4,8:10), distr = "rbern", 
+       prob = plogis( (x1bar[t-1] - 0.5) * 10)) +
+  node(name = "pk", t = 1, distr = "rbern", prob = 0)+
+  node(name = "pk", t = 2:t.end, distr = "getPk", pkm1 = pk[t-1], rx = trt[t])+
+  node(name = "x1bar", t = 1:t.end, distr = "aveProfile", time=t, pk = pk[t],
+       allergic=allergic, unitnoise = unitnoise) +
+  node(name = "x2bar", t = 1:t.end, distr = "aveProfile2", time=t,
+       allergic=allergic, unitnoise = unitnoise, x1bar = x1bar[t], 
+       responder = responder) +
+  
+  node(name = "rxn", t = 1:t.end, distr = "rbern",
+       prob = plogis( (x2bar[t] - 0.65) * 30))
+  
+  obj_D <- set.DAG(D)
+```
+
+## Motivation: Simulation
+
+```{r, echo=TRUE}
+sim_xbar <- simcausal::sim(DAG = obj_D,n = 100)
+sim_xbar_long <- format_long(sim_xbar)
+```
+```{r}
+sim_xbar_long %>% ggplot(aes(x = t, y=x1, colour = allergic))+
+  geom_line(aes(group = ID), alpha = .2)+
+  geom_point(data = sim_xbar_long %>% filter(rxn == 1), size = 2)+
+  geom_point(data = sim_xbar_long %>% filter(trt == 1), color = "black",size = 1)+
+  geom_point(data = sim_xbar_long %>% filter(trt == 1), color = "white",size = .5)+
+  facet_grid(treated_early ~ responder,labeller = label_both)+
+  
+  ylab(expression(X[1](t)))+
+  ggsci::scale_color_jama() +
+  theme_bw()
+```
+
+
+
+
+
+## Motivation: Simulation
+
+```{r, echo=F}
+sim_xbar_long %>% ggplot(aes(x = as.character(rxn), y = x1))+
+  geom_boxplot(outlier.color = NA)+
+  geom_jitter(alpha = .2, aes(shape = as.character(trt)))+
+  facet_wrap(treated_early ~ responder,labeller = label_both)
+```
+
 
 ## Background and Notation
 
 ::: columns
 ::: {.column width="50%"}
-Graph: Nodes + Edges
+Network: Nodes + Edges
 
-![Example](images/net_bg_notation.png)
+![](images/net_bg_notation.png)
 :::
 
 ::: {.column width="50%"}
@@ -81,12 +186,55 @@ Adjacency matrix: directed $$A = \begin{bmatrix}
 :::
 
 ## Background and Notation
-
+::: {style="font-size:24px"}
 **Data representation:**
 
 -   $X^t$: Observations (data) at time $t$
 -   $X^t \in R^{nxp}$: $X$ contains $n$ observations on $p$ nodes at time $t$
 
+### Note on conditional independence
+
+
+Consider
+
+```{mermaid}
+flowchart LR
+  x1((A)) --> x2((B))
+  x2 --> x3((C))
+```
+
+
+
+For this simple graph, conditional independence can be stated as 
+
+$$C \not\!\perp\!\!\!\perp A | B$$
+As the number of nodes, $p$, grows, establishing conditional independence 
+globally becomes challenging and many network inference algorithms rely on some variation of pairwise scoring between nodes, which is much more tractable. 
+However, those algorithms are more prone to false edge discovery.
+
+:::
+
+
+## Establishing Conditional Independence Through Regression
+::: columns
+::: {.column width="50%"}
+```{r, echo = T, fig.height= 6, fig.width=6}
+xx <- sim_xbar_long %>% select(ID, t, x1) %>% 
+    tidyr::pivot_wider(names_from = t,values_from = x1, names_prefix = "t_") 
+
+xx %>% select(t_1, t_2, t_3) %>% plot
+```
+
+:::
+::: {.column width="50%"}
+
+```{r, echo=TRUE, fig.height= 6, fig.width=6}
+mod <- lm(t_3 ~ t_2, data = xx)
+plot(mod$residuals, xx$t_1)
+```
+
+:::
+:::
 ## Vector Autoregressive (VAR) Models
 
 ::: callout-tip
@@ -138,7 +286,7 @@ $$\hat{A_{ij}^t} = \bar{A_{ij}^t} 1_{\{ \|\bar{A}^t\|_0 < \frac{p^2 \beta}{T-1} 
 
 3.  Estimate the order of the VAR model, $\hat{d}$, as follows:
 
-$$\hat{d} = \max_{t} \{t: \|\hat{A}^t\|_0 < \frac{p^2 \beta}{T-1} \}~~(5)$$ where $\beta$ is the desired rate of type II error for detecting an edge between two nodes. $\lambda$ and $\tau$ are tuning parameters with default values suggested by Shojaie et al.
+$$\hat{d} = \max_{t} \{t: \|\hat{A}^{T-t}\|_0 < \frac{p^2 \beta}{T-1} \}~~(5)$$ where $\beta$ is the desired rate of type II error for detecting an edge between two nodes. $\lambda$ and $\tau$ are tuning parameters with default values suggested by Shojaie et al.
 :::
 
 ## Estimating $A^t$s and $d$: A Toy Example
@@ -268,9 +416,33 @@ $$\hat{\mathcal{G}} = \sum\limits_{t=1}^{T-1}w_t{\hat{G}_t} ~~(13)$$
 :::
 
 
-## Ideas For Extensions
+## Summary and Future Work
 
--   Dealing with perturbation of nodes: if node_i is set, its' value should not be regressed on previous
--   Dealing with censoring
--   Computational parallelization
--   Total regression
+::: {style="font-size:24px"}
+
+The framework described has the following favorable properties
+
+*   With some mild assumptions, it can infer network topology based on conditional independence
+
+*   It is well-suited high-dimensional data, assuming sparsity of network
+
+*   It can handle higher order trajectories
+
+*   It expand to simultaneously process evolution of multiple biomarkers
+
+*   It can handle experimental fixing of nodes
+
+*   It relies on well-established and computationally efficient regression 
+machinery
+
+### Feature work
+
+*   Showing efficiency using simulated data
+
+*   Expansion to censored data
+
+*   Computational parallelization
+
+*   Total regression (as opposed to least squared)
+
+:::

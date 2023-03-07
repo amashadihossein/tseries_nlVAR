@@ -4,42 +4,77 @@
     "href": "tseries_nlVAR.html#overview",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
     "section": "Overview",
-    "text": "Overview\n\n\n1- Motivation\n      Typical problem\n      Data generation as DAG\n2- Background and Notation\n      DAGs and matrix representation\n      Representing data\n3- Vector Autoregressive (VAR) Models\n      A Toy example\n      Est VAR in high dimensional setting"
+    "text": "Overview\n\n\n\n1- Motivation\n      Typical problem\n      Data generation as DAG\n      Simulating the DAG\n2- Background and Notation\n      DAGs and matrix representation\n      Conditional Independence\n3- Vector Autoregressive (VAR) Models\n      A Toy example\n      Est VAR in high dimensional setting\n\n4- Network Inference\n      Thresholded LASSO\n      Generalizing to higher order\n5- Solution refinements\n      Model Tuning\n      Extended BIC\n      Dealing with uncertainty in obs window"
   },
   {
     "objectID": "tseries_nlVAR.html#motivation-1",
     "href": "tseries_nlVAR.html#motivation-1",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
     "section": "Motivation",
-    "text": "Motivation\n\n\n\n\n\n\nflowchart TD\n  A((exposure)) --> B((biomarker))\n  C((treatment)) --> B\n  B --> D((reaction))\n\n\n\n\n\n\n\n\n\n\n\n\nData Generation Mechanism"
+    "text": "Motivation\nGiven the case of an allergic reaction that is mediated through a measurable biomarker, consider the question re efficacy of treatment.\n\n\n\n\n\n\nflowchart TD\n  A((exposure)) --> B((biomarker))\n  C((treatment)) --> B\n  B --> D((reaction))"
   },
   {
     "objectID": "tseries_nlVAR.html#motivation-2",
     "href": "tseries_nlVAR.html#motivation-2",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
     "section": "Motivation",
-    "text": "Motivation\n\nData Generation Mechanism as DAG"
+    "text": "Motivation\nA slightly more realistic view of the data generation mechanism accounts (at least) for the first order temporal flow of the signal\n\nData Generation Viewed as DAG"
   },
   {
     "objectID": "tseries_nlVAR.html#motivation-3",
     "href": "tseries_nlVAR.html#motivation-3",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
     "section": "Motivation",
-    "text": "Motivation\n\nData Generation Mechanism as DAG"
+    "text": "Motivation\nIn this context, of primary interests are the effect of treatment \\(A_{trt}(t)\\) on the mediating biomarker \\(X_1(t)\\) and more importantly, the effect of \\(X_1(t)\\) on the outcome \\(Y_1(t)\\) (e.g. allergic reaction). Addressing the questions, could be viewed as a Network Inference problem.\n\nData Generation Viewed as DAG"
+  },
+  {
+    "objectID": "tseries_nlVAR.html#simulation",
+    "href": "tseries_nlVAR.html#simulation",
+    "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
+    "section": "Simulation",
+    "text": "Simulation\n\nTo make our mental model of the process even more explicitly defined, let’s consider the following DAG\n\n\n\nSimulation Dag t: baseline through 3"
+  },
+  {
+    "objectID": "tseries_nlVAR.html#simulation-1",
+    "href": "tseries_nlVAR.html#simulation-1",
+    "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
+    "section": "Simulation",
+    "text": "Simulation\nThe DAG can be implemented in simcausal as follows\n\nt_obs <- 1:30\nt.end <- length(t_obs)\n\nD <- DAG.empty() +\n  node(name = \"allergic\", distr = \"rbern\", prob = .5) +\n  node(name = \"responder\", distr = \"rbern\", prob = .5)+\n  node(name = \"unitnoise\", distr=\"rnorm\", mean=0, sd=.05) +\n  node(name = \"trt\", t = setdiff(1:t.end,c(2:4,8:10)), distr = \"rbern\", prob = 0)+\n  node(name = \"trt\", t = c(2:4,8:10), distr = \"rbern\", \n       prob = plogis( (x1bar[t-1] - 0.5) * 10)) +\n  node(name = \"pk\", t = 1, distr = \"rbern\", prob = 0)+\n  node(name = \"pk\", t = 2:t.end, distr = \"getPk\", pkm1 = pk[t-1], rx = trt[t])+\n  node(name = \"x1bar\", t = 1:t.end, distr = \"aveProfile\", time=t, pk = pk[t],\n       allergic=allergic, unitnoise = unitnoise) +\n  node(name = \"x2bar\", t = 1:t.end, distr = \"aveProfile2\", time=t,\n       allergic=allergic, unitnoise = unitnoise, x1bar = x1bar[t], \n       responder = responder) +\n  \n  node(name = \"rxn\", t = 1:t.end, distr = \"rbern\",\n       prob = plogis( (x2bar[t] - 0.65) * 30))\n  \n  obj_D <- set.DAG(D)"
+  },
+  {
+    "objectID": "tseries_nlVAR.html#motivation-simulation",
+    "href": "tseries_nlVAR.html#motivation-simulation",
+    "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
+    "section": "Motivation: Simulation",
+    "text": "Motivation: Simulation\n\nsim_xbar <- simcausal::sim(DAG = obj_D,n = 100)\nsim_xbar_long <- format_long(sim_xbar)"
+  },
+  {
+    "objectID": "tseries_nlVAR.html#motivation-simulation-1",
+    "href": "tseries_nlVAR.html#motivation-simulation-1",
+    "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
+    "section": "Motivation: Simulation",
+    "text": "Motivation: Simulation"
   },
   {
     "objectID": "tseries_nlVAR.html#background-and-notation-1",
     "href": "tseries_nlVAR.html#background-and-notation-1",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
     "section": "Background and Notation",
-    "text": "Background and Notation\n\n\nGraph: Nodes + Edges\n\n\n\nExample\n\n\n\nAdjacency matrix: not-directed\n\\[A_{0/1} = \\begin{bmatrix}\n0 & 1 & 1 & 0  \\\\\n1 & 0 & 1 & 0  \\\\\n1 & 1 & 0 & 1  \\\\\n0 & 0 & 1 & 0  \\\\\n\\end{bmatrix}\\]\nAdjacency matrix: directed \\[A = \\begin{bmatrix}\n0.0 & 0.5 & 2.0 & 0.0  \\\\\n0.0 & 0.0 & 1.0 & 0.0  \\\\\n0.0 & 0.0 & 0.0 & 0.0  \\\\\n0.0 & 0.0 & -1.0 & 0.0  \\\\\n\\end{bmatrix}\\]"
+    "text": "Background and Notation\n\n\nNetwork: Nodes + Edges\n\n\nAdjacency matrix: not-directed\n\\[A_{0/1} = \\begin{bmatrix}\n0 & 1 & 1 & 0  \\\\\n1 & 0 & 1 & 0  \\\\\n1 & 1 & 0 & 1  \\\\\n0 & 0 & 1 & 0  \\\\\n\\end{bmatrix}\\]\nAdjacency matrix: directed \\[A = \\begin{bmatrix}\n0.0 & 0.5 & 2.0 & 0.0  \\\\\n0.0 & 0.0 & 1.0 & 0.0  \\\\\n0.0 & 0.0 & 0.0 & 0.0  \\\\\n0.0 & 0.0 & -1.0 & 0.0  \\\\\n\\end{bmatrix}\\]"
   },
   {
     "objectID": "tseries_nlVAR.html#background-and-notation-2",
     "href": "tseries_nlVAR.html#background-and-notation-2",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
     "section": "Background and Notation",
-    "text": "Background and Notation\nData representation:\n\n\\(X^t\\): Observations (data) at time \\(t\\)\n\\(X^t \\in R^{nxp}\\): \\(X\\) contains \\(n\\) observations on \\(p\\) nodes at time \\(t\\)"
+    "text": "Background and Notation\n\nData representation:\n\n\\(X^t\\): Observations (data) at time \\(t\\)\n\\(X^t \\in R^{nxp}\\): \\(X\\) contains \\(n\\) observations on \\(p\\) nodes at time \\(t\\)\n\nNote on conditional independence\nConsider\n\n\n\n\nflowchart LR\n  x1((A)) --> x2((B))\n  x2 --> x3((C))\n\n\n\n\n\n\n\n\nFor this simple graph, conditional independence can be stated as\n\\[C \\not\\!\\perp\\!\\!\\!\\perp A | B\\] As the number of nodes, \\(p\\), grows, establishing conditional independence globally becomes challenging and many network inference algorithms rely on some variation of pairwise scoring between nodes, which is much more tractable. However, those algorithms are more prone to false edge discovery."
+  },
+  {
+    "objectID": "tseries_nlVAR.html#establishing-conditional-independence-through-regression",
+    "href": "tseries_nlVAR.html#establishing-conditional-independence-through-regression",
+    "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
+    "section": "Establishing Conditional Independence Through Regression",
+    "text": "Establishing Conditional Independence Through Regression\n\n\n\nxx <- sim_xbar_long %>% select(ID, t, x1) %>% \n    tidyr::pivot_wider(names_from = t,values_from = x1, names_prefix = \"t_\") \n\nxx %>% select(t_1, t_2, t_3) %>% plot\n\n\n\n\n\n\nmod <- lm(t_3 ~ t_2, data = xx)\nplot(mod$residuals, xx$t_1)"
   },
   {
     "objectID": "tseries_nlVAR.html#vector-autoregressive-var-models-1",
@@ -60,7 +95,7 @@
     "href": "tseries_nlVAR.html#estimating-ats-and-d-using-thresholded-lasso",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
     "section": "Estimating \\(A^t\\)s and \\(d\\) Using Thresholded LASSO",
-    "text": "Estimating \\(A^t\\)s and \\(d\\) Using Thresholded LASSO\n\nA 3-Step process for estimating \\(A^t\\)s and d by\n\nEstimate \\(\\bar{A^t}\\) by fit eq. 2 for each column \\(j\\) of \\(X^T\\)\n\n\\[\\underset{{\\alpha_0 \\in \\mathbb{R}^{1},\\mathcal{A}_{.j} \\in \\mathbb{R}^{q} }}{\\arg\\min} n^{-1}\n\\| X_{.j}^T  - \\alpha_0 - \\mathcal{X}\\mathcal{A}_{.j}  \\|_2^2\n+ \\lambda \\|\\mathcal{A}_{.j}\\|_1~~(3)\\]\n\nThreshold \\(\\bar{A^t}\\) to get the thresholded est. adj matrix, \\(\\hat{A^t}\\)\n\n\\[\\hat{A_{ij}^t} = \\bar{A_{ij}^t} 1_{\\{ \\|\\bar{A}^t\\|_0 < \\frac{p^2 \\beta}{T-1} \\text{ and }  |\\bar{A_{ij}^t}| < \\tau \\}}~~(4)\\]\n\nEstimate the order of the VAR model, \\(\\hat{d}\\), as follows:\n\n\\[\\hat{d} = \\max_{t} \\{t: \\|\\hat{A}^t\\|_0 < \\frac{p^2 \\beta}{T-1} \\}~~(5)\\] where \\(\\beta\\) is the desired rate of type II error for detecting an edge between two nodes. \\(\\lambda\\) and \\(\\tau\\) are tuning parameters with default values suggested by Shojaie et al."
+    "text": "Estimating \\(A^t\\)s and \\(d\\) Using Thresholded LASSO\n\nA 3-Step process for estimating \\(A^t\\)s and d by\n\nEstimate \\(\\bar{A^t}\\) by fit eq. 2 for each column \\(j\\) of \\(X^T\\)\n\n\\[\\underset{{\\alpha_0 \\in \\mathbb{R}^{1},\\mathcal{A}_{.j} \\in \\mathbb{R}^{q} }}{\\arg\\min} n^{-1}\n\\| X_{.j}^T  - \\alpha_0 - \\mathcal{X}\\mathcal{A}_{.j}  \\|_2^2\n+ \\lambda \\|\\mathcal{A}_{.j}\\|_1~~(3)\\]\n\nThreshold \\(\\bar{A^t}\\) to get the thresholded est. adj matrix, \\(\\hat{A^t}\\)\n\n\\[\\hat{A_{ij}^t} = \\bar{A_{ij}^t} 1_{\\{ \\|\\bar{A}^t\\|_0 < \\frac{p^2 \\beta}{T-1} \\text{ and }  |\\bar{A_{ij}^t}| < \\tau \\}}~~(4)\\]\n\nEstimate the order of the VAR model, \\(\\hat{d}\\), as follows:\n\n\\[\\hat{d} = \\max_{t} \\{t: \\|\\hat{A}^{T-t}\\|_0 < \\frac{p^2 \\beta}{T-1} \\}~~(5)\\] where \\(\\beta\\) is the desired rate of type II error for detecting an edge between two nodes. \\(\\lambda\\) and \\(\\tau\\) are tuning parameters with default values suggested by Shojaie et al."
   },
   {
     "objectID": "tseries_nlVAR.html#estimating-ats-and-d-a-toy-example",
@@ -112,10 +147,10 @@
     "text": "Bayesian Model Averaging (BMA)\n\n\nFor \\(\\forall~\\mathcal{X}_t = [X^{1}, ..., X^{t}]\\), where \\(t \\in \\{2,~...,~ T\\}\\) infer network: \\(M_t\\) and the corresponding graph \\(G_t\\)\nScore each inferred network, \\(M_t\\), using BIC 1,\n\n\\[w_i = \\frac{\\exp(-\\frac{1}{2} \\textrm{BIC}_{i})}{\\sum\\limits_{j=1}^{T-1}  \n\\exp(-\\frac{1}{2} \\textrm{BIC}_j) } ~~(12)\\]\n\nPerform a weighted average of the est. graph\n\n\\[\\hat{\\mathcal{G}} = \\sum\\limits_{t=1}^{T-1}w_t{\\hat{G}_t} ~~(13)\\]\n\nSelect a thresholding \\(\\mathcal{p} \\in [0~1]\\) and define thresholded BMA graph , \\(\\breve{\\mathcal{G}}\\) such that: \\(\\breve{\\mathcal{G}}_{ij} = \\hat{\\mathcal{G}_{ij}} 1_{[\\hat{\\mathcal{G}_{ij}} > \\mathcal{p}]}\\)\n\n\nBIC is used generically to refer to EBIC or BIC"
   },
   {
-    "objectID": "tseries_nlVAR.html#ideas-for-extensions",
-    "href": "tseries_nlVAR.html#ideas-for-extensions",
+    "objectID": "tseries_nlVAR.html#summary-and-future-work",
+    "href": "tseries_nlVAR.html#summary-and-future-work",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
-    "section": "Ideas For Extensions",
-    "text": "Ideas For Extensions\n\nDealing with perturbation of nodes: if node_i is set, its’ value should not be regressed on previous\nDealing with censoring\nComputational parallelization\nTotal regression"
+    "section": "Summary and Future Work",
+    "text": "Summary and Future Work\n\nThe framework described has the following favorable properties\n\nWith some mild assumptions, it can infer network topology based on conditional independence\nIt is well-suited high-dimensional data, assuming sparsity of network\nIt can handle higher order trajectories\nIt expand to simultaneously process evolution of multiple biomarkers\nIt can handle experimental fixing of nodes\nIt relies on well-established and computationally efficient regression machinery\n\nFeature work\n\nShowing efficiency using simulated data\nExpansion to censored data\nComputational parallelization\nTotal regression (as opposed to least squared)"
   }
 ]

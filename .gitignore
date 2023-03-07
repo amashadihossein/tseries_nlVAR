@@ -4,7 +4,5 @@
 .Ruserdata
 .DS_Store
 wip.R
-#*.html
-#images/
-#tseries_nlVAR_files/
 /.quarto/
+*.excalidraw
