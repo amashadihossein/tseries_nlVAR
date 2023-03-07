@@ -11,49 +11,56 @@
     "href": "tseries_nlVAR.html#motivation-1",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
     "section": "Motivation",
-    "text": "Motivation\nGiven the case of an allergic reaction that is mediated through a measurable biomarker, consider the question re efficacy of treatment.\n\n\n\n\n\n\nflowchart TD\n  A((exposure)) --> B((biomarker))\n  C((treatment)) --> B\n  B --> D((reaction))"
+    "text": "Motivation\n\nGiven the case of an allergic reaction that is mediated through a measurable biomarker, consider the question re efficacy of treatment.\n\n\n\n\n\n\nflowchart TD\n  A((exposure)) --> B((biomarker))\n  C((treatment)) --> B\n  B --> D((reaction))"
   },
   {
     "objectID": "tseries_nlVAR.html#motivation-2",
     "href": "tseries_nlVAR.html#motivation-2",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
     "section": "Motivation",
-    "text": "Motivation\nA slightly more realistic view of the data generation mechanism accounts (at least) for the first order temporal flow of the signal\n\nData Generation Viewed as DAG"
+    "text": "Motivation\n\nA slightly more representative view of the data generation mechanism (than the simplistic DAG earlier) accounts (at least) for the first order temporal flow of the signal\n\n\n\nData Generation Viewed as DAG"
   },
   {
-    "objectID": "tseries_nlVAR.html#motivation-3",
-    "href": "tseries_nlVAR.html#motivation-3",
+    "objectID": "tseries_nlVAR.html#viewing-the-question-as-a-network-inference-task",
+    "href": "tseries_nlVAR.html#viewing-the-question-as-a-network-inference-task",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
-    "section": "Motivation",
-    "text": "Motivation\nIn this context, of primary interests are the effect of treatment \\(A_{trt}(t)\\) on the mediating biomarker \\(X_1(t)\\) and more importantly, the effect of \\(X_1(t)\\) on the outcome \\(Y_1(t)\\) (e.g. allergic reaction). Addressing the questions, could be viewed as a Network Inference problem.\n\nData Generation Viewed as DAG"
+    "section": "Viewing the Question as a Network Inference Task",
+    "text": "Viewing the Question as a Network Inference Task\nIn this context, of primary interests are the effect of treatment, \\(A_{trt}(t)\\), on the mediating biomarker, \\(X_1(t)\\), and more importantly, the effect of \\(X_1(t)\\) on the outcome, \\(Y_1(t)\\), (e.g. allergic reaction). Addressing these questions, could be viewed as a Network Inference problem.\n\nData Generation Viewed as DAG"
   },
   {
-    "objectID": "tseries_nlVAR.html#simulation",
-    "href": "tseries_nlVAR.html#simulation",
+    "objectID": "tseries_nlVAR.html#specifying-the-network",
+    "href": "tseries_nlVAR.html#specifying-the-network",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
-    "section": "Simulation",
-    "text": "Simulation\n\nTo make our mental model of the process even more explicitly defined, let’s consider the following DAG\n\n\n\nSimulation Dag t: baseline through 3"
+    "section": "Specifying the Network",
+    "text": "Specifying the Network\n\nTo make our mental model of the process even more explicitly defined, let’s consider the following DAG\n\n\n\nSimulation Dag t: baseline through 3"
   },
   {
-    "objectID": "tseries_nlVAR.html#simulation-1",
-    "href": "tseries_nlVAR.html#simulation-1",
+    "objectID": "tseries_nlVAR.html#coding-the-network",
+    "href": "tseries_nlVAR.html#coding-the-network",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
-    "section": "Simulation",
-    "text": "Simulation\nThe DAG can be implemented in simcausal as follows\n\nt_obs <- 1:30\nt.end <- length(t_obs)\n\nD <- DAG.empty() +\n  node(name = \"allergic\", distr = \"rbern\", prob = .5) +\n  node(name = \"responder\", distr = \"rbern\", prob = .5)+\n  node(name = \"unitnoise\", distr=\"rnorm\", mean=0, sd=.05) +\n  node(name = \"trt\", t = setdiff(1:t.end,c(2:4,8:10)), distr = \"rbern\", prob = 0)+\n  node(name = \"trt\", t = c(2:4,8:10), distr = \"rbern\", \n       prob = plogis( (x1bar[t-1] - 0.5) * 10)) +\n  node(name = \"pk\", t = 1, distr = \"rbern\", prob = 0)+\n  node(name = \"pk\", t = 2:t.end, distr = \"getPk\", pkm1 = pk[t-1], rx = trt[t])+\n  node(name = \"x1bar\", t = 1:t.end, distr = \"aveProfile\", time=t, pk = pk[t],\n       allergic=allergic, unitnoise = unitnoise) +\n  node(name = \"x2bar\", t = 1:t.end, distr = \"aveProfile2\", time=t,\n       allergic=allergic, unitnoise = unitnoise, x1bar = x1bar[t], \n       responder = responder) +\n  \n  node(name = \"rxn\", t = 1:t.end, distr = \"rbern\",\n       prob = plogis( (x2bar[t] - 0.65) * 30))\n  \n  obj_D <- set.DAG(D)"
+    "section": "Coding the Network",
+    "text": "Coding the Network\nThe DAG can be implemented in simcausal as follows\n\nt_obs <- 1:30\nt.end <- length(t_obs)\n\nD <- DAG.empty() +\n  node(name = \"allergic\", distr = \"rbern\", prob = .5) +\n  node(name = \"responder\", distr = \"rbern\", prob = .5)+\n  node(name = \"unitnoise\", distr=\"rnorm\", mean=0, sd=.05) +\n  node(name = \"trt\", t = setdiff(1:t.end,c(2:4,8:10)), distr = \"rbern\", prob = 0)+\n  node(name = \"trt\", t = c(2:4,8:10), distr = \"rbern\", \n       prob = plogis( (x1bar[t-1] - 0.5) * 10)) +\n  node(name = \"pk\", t = 1, distr = \"rbern\", prob = 0)+\n  node(name = \"pk\", t = 2:t.end, distr = \"getPk\", pkm1 = pk[t-1], rx = trt[t])+\n  node(name = \"x1bar\", t = 1:t.end, distr = \"aveProfile\", time=t, pk = pk[t],\n       allergic=allergic, unitnoise = unitnoise) +\n  node(name = \"x2bar\", t = 1:t.end, distr = \"aveProfile2\", time=t,\n       allergic=allergic, unitnoise = unitnoise, x1bar = x1bar[t], \n       responder = responder) +\n  \n  node(name = \"rxn\", t = 1:t.end, distr = \"rbern\",\n       prob = plogis( (x2bar[t] - 0.65) * 30))\n  \n  obj_D <- set.DAG(D)"
   },
   {
-    "objectID": "tseries_nlVAR.html#motivation-simulation",
-    "href": "tseries_nlVAR.html#motivation-simulation",
+    "objectID": "tseries_nlVAR.html#simulating-the-network",
+    "href": "tseries_nlVAR.html#simulating-the-network",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
-    "section": "Motivation: Simulation",
-    "text": "Motivation: Simulation\n\nsim_xbar <- simcausal::sim(DAG = obj_D,n = 100)\nsim_xbar_long <- format_long(sim_xbar)"
+    "section": "Simulating the Network",
+    "text": "Simulating the Network\n\nset.seed(3)\nsim_xbar <- simcausal::sim(DAG = obj_D,n = 100)\nsim_xbar_long <- format_long(sim_xbar)"
   },
   {
-    "objectID": "tseries_nlVAR.html#motivation-simulation-1",
-    "href": "tseries_nlVAR.html#motivation-simulation-1",
+    "objectID": "tseries_nlVAR.html#simulating-the-network-1",
+    "href": "tseries_nlVAR.html#simulating-the-network-1",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
-    "section": "Motivation: Simulation",
-    "text": "Motivation: Simulation"
+    "section": "Simulating the Network",
+    "text": "Simulating the Network"
+  },
+  {
+    "objectID": "tseries_nlVAR.html#simulating-the-network-2",
+    "href": "tseries_nlVAR.html#simulating-the-network-2",
+    "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
+    "section": "Simulating the Network",
+    "text": "Simulating the Network\n\n\n\n\n\n\nInterpreting profile of a non-responder\n\n\nThis is for a non-responder Note ATE as measured for counter-factual of \\(X_1^{\\textrm{counterfactural}}\\) relative to \\(X_1^{\\textrm{obs}}\\) is good but RXN still takes place in relatively low \\(X_1^{\\textrm{obs}}\\)"
   },
   {
     "objectID": "tseries_nlVAR.html#background-and-notation-1",
@@ -67,14 +74,14 @@
     "href": "tseries_nlVAR.html#background-and-notation-2",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
     "section": "Background and Notation",
-    "text": "Background and Notation\n\nData representation:\n\n\\(X^t\\): Observations (data) at time \\(t\\)\n\\(X^t \\in R^{nxp}\\): \\(X\\) contains \\(n\\) observations on \\(p\\) nodes at time \\(t\\)\n\nNote on conditional independence\nConsider\n\n\n\n\nflowchart LR\n  x1((A)) --> x2((B))\n  x2 --> x3((C))\n\n\n\n\n\n\n\n\nFor this simple graph, conditional independence can be stated as\n\\[C \\not\\!\\perp\\!\\!\\!\\perp A | B\\] As the number of nodes, \\(p\\), grows, establishing conditional independence globally becomes challenging and many network inference algorithms rely on some variation of pairwise scoring between nodes, which is much more tractable. However, those algorithms are more prone to false edge discovery."
+    "text": "Background and Notation\n\nData representation:\n\n\\(X^t\\): Observations (data) at time \\(t\\)\n\\(X^t \\in R^{nxp}\\): \\(X\\) contains \\(n\\) observations on \\(p\\) nodes at time \\(t\\)\n\n\n\n\n\n\n\nConditional Independence\n\n\n\n\n\n\n\nflowchart LR\n  x1((A)) --> x2((B))\n  x2 --> x3((C))\n\n\n\n\n\n\n\n\nFor this simple graph, conditional independence can be stated as\n\\[C \\not\\!\\perp\\!\\!\\!\\perp A | B\\]\nAs the number of nodes, \\(p\\), grows, establishing conditional independence globally becomes challenging and many network inference algorithms rely on some variation of pairwise scoring between nodes, which is much more tractable. However, those algorithms are more prone to false edge discovery."
   },
   {
-    "objectID": "tseries_nlVAR.html#establishing-conditional-independence-through-regression",
-    "href": "tseries_nlVAR.html#establishing-conditional-independence-through-regression",
+    "objectID": "tseries_nlVAR.html#conditional-independence-through-regression",
+    "href": "tseries_nlVAR.html#conditional-independence-through-regression",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
-    "section": "Establishing Conditional Independence Through Regression",
-    "text": "Establishing Conditional Independence Through Regression\n\n\n\nxx <- sim_xbar_long %>% select(ID, t, x1) %>% \n    tidyr::pivot_wider(names_from = t,values_from = x1, names_prefix = \"t_\") \n\nxx %>% select(t_1, t_2, t_3) %>% plot\n\n\n\n\n\n\nmod <- lm(t_3 ~ t_2, data = xx)\nplot(mod$residuals, xx$t_1)"
+    "section": "Conditional Independence Through Regression",
+    "text": "Conditional Independence Through Regression\n\n\n\n\n\nflowchart LR\n  x1t1((x1_t1)) --> x2t2((x2_t2))\n  x2t2 --> x3t3((x3_t3))\n\n\n\n\n\n\n\n\n\n\n\nxx <- sim_xbar_long %>% select(ID, t, x1) %>% \n    tidyr::pivot_wider(names_from = t,values_from = x1, names_prefix = \"t_\") \n\nxx %>% select(t_1, t_2, t_3) %>% plot\n\n\n\n\n\n\nmod <- lm(t_3 ~ t_2, data = xx)\nplot(mod$residuals, xx$t_1)"
   },
   {
     "objectID": "tseries_nlVAR.html#vector-autoregressive-var-models-1",
@@ -88,7 +95,7 @@
     "href": "tseries_nlVAR.html#estimating-ats-and-d",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
     "section": "Estimating \\(A^t\\)s and \\(d\\)",
-    "text": "Estimating \\(A^t\\)s and \\(d\\)\n\nCombining \\(X^T \\rightarrow \\mathcal{X}\\) and stacking \\(A^t \\rightarrow \\mathcal{A}\\):\n\n\\[X^T = \\mathcal{X} \\mathcal{A} + \\epsilon^T, ~\\epsilon^T \\sim\n\\mathcal{MN}(0_{nxp},\\sigma^2 I_n, \\sigma^2 I_p) ~~ (2)\\]\n\nEstimating \\(A^t\\)s amounts to regressing columns of \\(X^T\\) on one at a time\nObserving that\n\n  1. \\(\\mathcal{X}\\) is high dimensional (\\(n \\ll p\\)) and that\n  2. \\(A^t\\) are expected to be sparse\n  regression involves both variable selection (which nodes are connected) and estimation (quantification of connection strength). To this end, we can impose a \\(\\ell_1\\) type penalty to the regression. To estimate \\(d\\) we could then use thresholded LASSO (Shojaie et al)."
+    "text": "Estimating \\(A^t\\)s and \\(d\\)\n\nCombining \\(X^T \\rightarrow \\mathcal{X}\\) and stacking \\(A^t \\rightarrow \\mathcal{A}\\):\n\n\\[X^T = \\mathcal{X} \\mathcal{A} + \\epsilon^T, ~\\epsilon^T \\sim\n\\mathcal{MN}(0_{nxp},\\sigma^2 I_n, \\sigma^2 I_p) ~~ (2)\\]\n\nEstimating \\(A^t\\)s amounts to regressing columns of \\(X^T\\) on \\(\\mathcal{X}\\) one at a time\nObserving that\n\n  1. \\(\\mathcal{X}\\) is high dimensional (\\(n \\ll p\\)) and that\n  2. \\(A^t\\) are expected to be sparse\n  regression involves both variable selection (which nodes are connected) and estimation (quantification of connection strength). To this end, we can impose a \\(\\ell_1\\) type penalty to the regression. To estimate \\(d\\) we could then use thresholded LASSO (Shojaie et al)."
   },
   {
     "objectID": "tseries_nlVAR.html#estimating-ats-and-d-using-thresholded-lasso",
@@ -151,6 +158,6 @@
     "href": "tseries_nlVAR.html#summary-and-future-work",
     "title": "Time-series Inference Using a Non-linear Vector Autoregressive Model",
     "section": "Summary and Future Work",
-    "text": "Summary and Future Work\n\nThe framework described has the following favorable properties\n\nWith some mild assumptions, it can infer network topology based on conditional independence\nIt is well-suited high-dimensional data, assuming sparsity of network\nIt can handle higher order trajectories\nIt expand to simultaneously process evolution of multiple biomarkers\nIt can handle experimental fixing of nodes\nIt relies on well-established and computationally efficient regression machinery\n\nFeature work\n\nShowing efficiency using simulated data\nExpansion to censored data\nComputational parallelization\nTotal regression (as opposed to least squared)"
+    "text": "Summary and Future Work\n\nThe framework described has the following favorable properties\n\nWith some mild assumptions, it can infer network topology based on conditional independence\nIt is well-suited for high-dimensional data, assuming sparsity of network\nIt can handle higher order trajectories\nIt expands to enable analysis of simultaneously evolving processes (e.g. multiple biomarkers)\nIt can handle experimental perturbation of nodes\nIt relies on well-established and computationally efficient regression machinery\n\nFeature work\n\nQuantifying algorithm efficiency using simulated data\nExpansion to handle censored data\nComputational parallelization\nTotal regression (as opposed to least squares)"
   }
 ]

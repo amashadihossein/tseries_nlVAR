@@ -1,6 +1,7 @@
 library(simcausal)
 library(dplyr)
 library(ggplot2)
+library(plotly)
 library(conflicted)
 
 # pkg conflict preference
